@@ -1,0 +1,106 @@
+---
+- name: copy the updated keeaplived conf files on each hosts
+  hosts: "{{ host | default('dockerrepo')}}"
+  become: yes
+  become_method: sudo
+  vars:
+   home: /home/docker/cloud-service-scripts/playbooks/roles
+
+  tasks:
+  - debug: msg=" host {{ host }}"
+  - debug: msg=" home {{ home }}"
+
+  - name: copy the etcd keepalived conf file
+    copy: src={{ home }}/etcd/files/keepalived.conf.etcd.tmpl dest=/etc/keepalived/keepalived.conf.etcd.tmpl mode=0755
+    when: host=="etcdCluster"
+  - name: update the priority value on etcd config template file
+    command: sed -i "s/PRIORITY_MACRO/{{ (item[0] * 10 + 100 )| int }}/g" /etc/keepalived/keepalived.conf.etcd.tmpl
+    with_indexed_items: '{{play_hosts}}'
+    when:
+       - host=="etcdCluster" and item[1] == inventory_hostname 
+  - name: look up the ip of etcdCluster  VIP
+    shell: host etcdcluster | cut -d" " -f4 | cut -d. -f4
+    when: host=="etcdCluster"
+    register: vrid
+  - name: update the virtual router id on config template file
+    command: sed -i "s/VRID_MACRO/{{vrid.stdout}}/g" /etc/keepalived/keepalived.conf.etcd.tmpl
+    when: host=="etcdCluster"
+  - name: restart keepalived service on etcd nodes
+    command: service keepalived restart
+    when: host=="etcdCluster"
+
+  - name: copy the loadbalancer version file
+    copy: src={{ home }}/nginx/files/keepalived.conf.nginx.tmpl dest=/etc/keepalived/keepalived.conf.nginx.tmpl mode=0755
+    when: host=="lbaas"
+  - name: update the priority value on lbaas  config template file
+    command: sed -i "s/PRIORITY_MACRO/{{ (item[0] * 10 + 100 )| int }}/g" /etc/keepalived/keepalived.conf.nginx.tmpl
+    with_indexed_items: '{{play_hosts}}'
+    when:
+      - host=="lbaas" and item[1] == inventory_hostname
+  - name: look up the ip of the lbaas VIP
+    shell: host lbaas | cut -d" " -f4 | cut -d. -f4  
+    when: host=="lbaas"
+    register: vrid
+  - name: update the virtual router id on config template file
+    command: sed -i "s/VRID_MACRO/{{vrid.stdout}}/g" /etc/keepalived/keepalived.conf.nginx.tmpl
+    when: host=="lbaas"
+  - name: restart keepalived service on nginx nodes
+    command: service keepalived restart
+    when: host=="lbaas"
+
+  - name: copy the HaProxy kepalived conf file
+    copy: src={{ home }}/HAProxy/files/keepalived.conf.haproxy.tmpl dest=/etc/keepalived/keepalived.conf.haproxy.tmpl mode=0755
+    when: host=="haproxy"
+  - name: update the priority value on haproxy config template file
+    command: sed -i "s/PRIORITY_MACRO/{{ (item[0] * 10 + 100 ) | int }}/g" /etc/keepalived/keepalived.conf.haproxy.tmpl
+    with_indexed_items: '{{play_hosts}}'
+    when:
+      - host=="haproxy" and item[1] == inventory_hostname 
+  - name: look up the ip of the elk VIP
+    shell: host elk | cut -d" " -f4 | cut -d. -f4  
+    when: host=="haproxy"
+    register: vrid
+  - name: update the virtual router id on config template file
+    command: sed -i "s/VRID_MACRO/{{vrid.stdout}}/g" /etc/keepalived/keepalived.conf.haproxy.tmpl
+    when: host=="haproxy"
+  - name: restart keepalived service on haproxy nodes
+    command: service keepalived restart
+    when: host=="haproxy"
+
+  - name: copy the database version file
+    copy: src={{ home }}/pgpool/files/keepalived.conf.pgpool.tmpl dest=/etc/keepalived/keepalived.conf.pgpool.tmpl mode=0755
+    when: host=="dbaas"
+  - name: update the priority value on database config template file
+    command: sed -i "s/PRIORITY_MACRO/{{ (item[0] * 10 + 100 )| int }}/g" /etc/keepalived/keepalived.conf.pgpool.tmpl
+    with_indexed_items: '{{play_hosts}}'
+    when:
+      - host=="dbaas" and item[1] == inventory_hostname
+  - name: look up the ip of database VIP
+    shell: host dbaascluster | cut -d" " -f4 | cut -d. -f4  
+    when: host=="dbaas"
+    register: vrid
+  - name: update the virtual router id on config template file
+    command: sed -i "s/VRID_MACRO/{{vrid.stdout}}/g" /etc/keepalived/keepalived.conf.pgpool.tmpl
+    when: host=="dbaas"
+  - name: restart keepalived service on database nodes
+    command: service keepalived restart
+    when: host=="dbaas"
+
+  - name: copy the acpapi version file
+    copy: src={{ home }}/acp_api/files/keepalived.conf.acpapi.tmpl dest=/etc/keepalived/keepalived.conf.acpapi.tmpl mode=0755
+    when: host=="acpapi"
+  - name: update the priority value on acpapi config template file
+    command: sed -i "s/PRIORITY_MACRO/{{ (item[0] * 10 + 100 )| int }}/g" /etc/keepalived/keepalived.conf.acpapi.tmpl
+    with_indexed_items: play_hosts
+    when:
+      - host=="acpapi" and item[1] == inventory_hostname
+  - name: look up the ip of acpapi VIP
+    shell: host acpapi | cut -d" " -f4 | cut -d. -f4
+    when: host=="acpapi"
+    register: vrid
+  - name: update the virtual router id on config template file
+    command: sed -i "s/VRID_MACRO/{{vrid.stdout}}/g" /etc/keepalived/keepalived.conf.acpapi.tmpl
+    when: host=="acpapi"
+  - name: restart keepalived service on acpapi nodes
+    command: service keepalived restart
+    when: host=="acpapi"

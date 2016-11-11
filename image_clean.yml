@@ -1,0 +1,12 @@
+---
+- name: cleanup images on all hosts
+  hosts: "{{ host | default('acp')}}"
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: remove unused images from host
+      become: yes
+      become_method: sudo
+      shell: docker rmi --force $(docker images -q)
+      ignore_errors: true
+

@@ -1,0 +1,21 @@
+---
+- name: clean swarm computational nodes
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  gather_facts: true
+
+  tasks:
+    - name: look up the ip of the etcd VIP
+      shell: host etcdcluster | cut -d" " -f4
+      register: etcdvip
+    - name: look up the ip of the swarm VIP
+      shell: host swarmcluster | cut -d" " -f4
+      register: swarmvip
+    - name: collect swarm app hosts
+      shell:  docker  -H tcp://{{swarmvip.stdout}}:2377  run --rm dockerrepo:5000/swarm:LATEST list etcd://{{etcdvip.stdout}}:4001/swarm/
+      register: command_result
+    - name: purge swarm
+      shell: docker -H tcp://{{ item }} ps -a | awk '{ print $1,$2 }' | grep swarm: | awk '{print $1 }' | xargs -I {} docker stop {}| xargs -I {} docker rm {}
+      with_items: "{{command_result.stdout_lines}}"
+      run_once: true

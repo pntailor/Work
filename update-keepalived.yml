@@ -1,0 +1,11 @@
+- include: keepalived.yml
+- include: update_keepalived.yml host="etcdCluster"
+  ignore_errors: true
+- include: update_keepalived.yml host="lbaas"
+  ignore_errors: true
+- include: update_keepalived.yml host="haproxy"
+  ignore_errors: true
+- include: update_keepalived.yml host="dbaas"
+  ignore_errors: true
+- include: update_keepalived.yml host="acpapi"
+  ignore_errors: true

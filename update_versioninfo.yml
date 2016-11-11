@@ -1,0 +1,36 @@
+---
+- name: update the version info file on hosts
+  hosts: "{{ host | default('dockerrepo')}}"
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - debug: msg=" host {{ host }}"
+
+  - name: copy the srdaas version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/srdaas-version.json dest=/arris/compose/srdaas-version.json mode=0755
+    when: host=="etcdCluster"
+  - name: copy the loadbalancer version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/lbaas-version.json dest=/arris/compose/lbaas-version.json mode=0755
+    when: host=="lbaas"
+  - name: copy the loadbalancer version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/lbaas-version.json dest=/arris/compose/lbaas-version.json mode=0755
+    when: host=="haproxy"
+  - name: copy the database version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/dbaas-version.json dest=/arris/compose/dbaas-version.json mode=0755
+    when: host=="dbaas"
+  - name: copy the messaging version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/maas-version.json dest=/arris/compose/maas-version.json mode=0755
+    when: host=="maas"
+  - name: copy the logging version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/laas-version.json dest=/arris/compose/laas-version.json mode=0755
+    when: host=="elk"
+  - name: copy the monitoring  version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/monaas-version.json dest=/arris/compose/monaas-version.json mode=0755
+    when: host=="advisor"
+  - name: copy the api version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/paas-version.json dest=/arris/compose/paas-version.json mode=0755
+    when: host=="acpapi"
+  - name: copy the code controller version file
+    copy: src=/home/docker/cloud-service-scripts/playbooks/install-version/cdcaas-version.json dest=/arris/compose/cdcaas-version.json mode=0755
+    when: host=="cdc"

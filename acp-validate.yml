@@ -1,0 +1,69 @@
+---
+- name: ACP validation
+  hosts: localhost
+  gather_facts: True
+  vars_prompt:
+   - name: "defaultDNSzone"
+     prompt: "Enter the DNS Zone name"
+     confirm: no
+     private: no
+     default: internal.acp.arris.com
+
+  vars:
+    logMarker : "__ACP__"
+    inventoryFile : /home/docker/cloud-service-scripts/playbooks/inventory
+    jmeter_conf : /home/fldengr/jmeter/conf
+    jmeter_logs : /home/fldengr/jmeter/logs
+    jmeter_source : /home/docker/cloud-service-scripts/playbooks/IT
+    properties_file: user.properties
+    properties_file_path: /opt/jmeter/apache-jmeter-2.13/bin
+    is_CentOS: "{{ansible_distribution == 'CentOS'}}"
+    RunValidations: True
+    timestamp: "{{lookup('pipe','date +%Y%m%d%H%M%S')}}"
+    jmeter:
+      run_log_file: "{{ jmeter_logs }}/ACP_validation_run_{{ timestamp }}.log"
+      sampler_log_file: "{{ jmeter_logs }}/ACP_validation_sampler_{{ timestamp }}.log"
+      test_plan: "{{ jmeter_source }}/ACP_Validation_Master.jmx"
+  tasks:
+    - name: deploy user.properties file
+      sudo: yes
+      copy: src=/home/docker/cloud-service-scripts/playbooks/IT/user.properties dest={{ properties_file_path }}/{{ properties_file }} owner=fldengr group=fldengr  mode=0664
+
+    - name: set test Common in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestCommon=" line="bTestCommon={{ RunValidations|lower }}"
+
+    - name: set test DBaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestDBaaS=" line="bTestDBaaS={{ RunValidations|lower }}"
+
+    - name: set test infrastucture in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestIaaS=" line="bTestIaaS={{ RunValidations|lower }}"
+
+    - name: set test LaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestLaaS=" line="bTestLaaS={{ RunValidations|lower }}"
+
+    - name: set test LBaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestLBaaS=" line="bTestLBaaS={{ RunValidations|lower }}"
+
+    - name: set test MaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestMaaS=" line="bTestMaaS={{ RunValidations|lower }}"
+
+    - name: set test MonaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestMonaaS=" line="bTestMonaaS={{ RunValidations|lower }}"
+
+    - name: set test SRDaaS in Jmeter user.properties
+      sudo: yes
+      lineinfile: dest={{ properties_file_path }}/{{ properties_file }}  regexp="^bTestSRDaaS=" line="bTestSRDaaS={{ RunValidations|lower }}"
+
+    - name: create log directory
+      file: "path={{jmeter_logs}} state=directory mode=0755"
+
+    - name: run JMeter Validation
+      command: "/opt/jmeter/apache-jmeter-2.13/bin/jmeter -JdockerRepoNode={{ ansible_eth0.ipv4.address }} -JinventoryFile={{ inventoryFile }} -JdefaultDNSzone={{ defaultDNSzone }} -JLOGMARKER={{ logMarker }} -n -t {{ jmeter.test_plan }}  -j {{ jmeter.run_log_file }}"
+     

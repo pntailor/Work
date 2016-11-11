@@ -1,0 +1,7 @@
+---
+- name: Deploy swarm mgt service to VMs
+  hosts: swarmmgt
+  become: yes
+  become_method: sudo
+  roles:
+     - swarm

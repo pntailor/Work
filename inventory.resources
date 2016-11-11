@@ -1,0 +1,37 @@
+# Sample Inventory file for Swarm deployment 
+[controller1]
+#.#.#.#
+[node1]
+#.#.#.#
+[node2]
+#.#.#.#
+[node3]
+#.#.#.#
+[ntp1]
+dockerrepo
+[ntp2]
+#.#.#.#
+[ntp3]
+#.#.#.#
+##########################################
+# Below are groups of nodes selecting how 
+# each service(s) is associated to a node.
+# Modifications below this point are not 
+# recommended
+##########################################  
+[resource:children]
+controller1
+[swarm:children]
+node1
+node2
+node3
+[acp:children]
+node1
+node2
+node3
+[ntp:children]
+ntp1
+ntp2
+ntp3
+[acp:vars]
+AWS="n"

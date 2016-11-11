@@ -1,0 +1,54 @@
+---
+- name: add swarm computational nodes
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  gather_facts: true
+
+  tasks:
+    - name: look up the ip of the etcd VIP
+      shell: host etcdcluster | cut -d" " -f4
+      register: etcdvip
+    - name: look up the ip of the swarm VIP
+      shell: host swarmcluster | cut -d" " -f4
+      register: swarmvip
+    - name: pull the docker images
+      command: docker pull dockerrepo:5000/swarm:LATEST
+    - name: Grab iptables rules for survey of firewall (INPUT rules only)
+      shell: iptables -n --list INPUT
+      register: iptablesinputtablerules
+      always_run: yes
+
+    - name: punch the hole in the firewall 
+      command: iptables -I INPUT -p tcp --dport {{ item }} -j ACCEPT
+      when: iptablesinputtablerules.stdout.find("dpt:{{ item }} ") == -1
+      with_items:
+          - 2375
+          - 2377
+          - 4001
+          - 7001
+    - name: save iptables configuration
+      shell: service iptables save
+      ignore_errors: yes
+    - name: leave the swarm in case it is already there
+      command: docker run -d dockerrepo:5000/swarm:LATEST leave --addr={{ansible_eth0.ipv4.address}}:2375 etcd://{{etcdvip.stdout}}:4001/swarm/
+
+    - name: stop containers
+      shell: docker stop `docker ps -a -q`
+      ignore_errors: true
+
+    - name: find containers to remove
+      shell: docker ps -a -q
+      register: remove
+      ignore_errors: true
+
+    - name: remove containers
+      shell: docker rm -v -f `docker ps -a -q --no-trunc`
+      when: remove.stdout
+      changed_when: remove.stdout
+      ignore_errors: true
+      async: 150
+      poll: 5
+
+    - name: add the host the swarm
+      command: docker run -d --restart=always --log-driver=json-file --log-opt max-size=100m --log-opt max-file=10 --name=swarmresource dockerrepo:5000/swarm:LATEST join --addr={{ansible_eth0.ipv4.address}}:2375 etcd://{{etcdvip.stdout}}:4001/swarm/

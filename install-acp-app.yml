@@ -1,0 +1,6 @@
+- include: get-hostkeys.yml
+- include: ansible-prereq.yml
+- include: nameserver.yml
+- include: ntp.yml
+- include: logrotate.yml
+- include: swarm-join.yml

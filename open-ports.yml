@@ -1,0 +1,26 @@
+---
+- name: add ssh key
+  hosts: "{{ host | default('acp')}}"
+  sudo: yes
+
+  tasks:
+  - name: copy ports.txt file on host
+    copy: src=/home/docker/cloud-service-scripts/playbooks/ports.txt dest=/home/fldengr/ owner=root group=root mode=0755
+
+  - name: read the ports.txt file
+    shell: cat /home/fldengr/ports.txt
+    register: ports
+
+  - name: Grab iptables rules for survey of firewall (INPUT rules only)
+    shell: iptables -n --list INPUT
+    register: iptablesinputtablerules
+    always_run: yes
+
+  - name: punch the holes in the firewall
+    command: iptables -I INPUT -p tcp --dport {{ item }} -j ACCEPT
+    when: iptablesinputtablerules.stdout.find("dpt:{{ item }} ") == -1
+    with_items:  ports.stdout_lines
+
+  - name: save the firewall
+    command: service iptables save
+

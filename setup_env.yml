@@ -1,0 +1,15 @@
+---
+- name: update the environment variable
+  hosts: "{{ host | default('acp')}}"
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - name: add env var to root
+    shell: export COMPOSE_HTTP_TIMEOUT=90
+  - name: set COMPOSE_HTTP_TIMEOUT
+    lineinfile: dest=/etc/profile line="export COMPOSE_HTTP_TIMEOUT=90"
+  - name: add env var to root
+    shell: source /etc/profile
+  - name: add env var to root
+    shell: echo "export COMPOSE_HTTP_TIMEOUT=90" >> /usr/sbin/.env

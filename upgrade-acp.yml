@@ -1,0 +1,19 @@
+- include: setup_env.yml 
+- include: upgrade-etcd.yml
+- include: image_clean.yml host="etcdCluster"
+- include: upgrade-zk.yml
+  when: application | lower != "ndvr"
+- include: upgrade-haproxy.yml
+- include: image_clean.yml host="haproxy"
+- include: upgrade-nginx.yml
+- include: image_clean.yml host="lbaas"
+- include: upgrade-rabbitmq.yml
+- include: image_clean.yml host="maas"
+- include: upgrade-elk.yml
+- include: image_clean.yml host="elk" 
+- include: upgrade-pgpool.yml
+- include: image_clean.yml host="dbaas" 
+- include: upgrade-postgres.yml
+- include: image_clean.yml host="dbaas" 
+- include: deploy-advisor.yml
+- include: image_clean.yml host="advisor" 

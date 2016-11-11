@@ -1,0 +1,13 @@
+- include: restart-etcd.yml
+- include: restart-zk.yml
+  when: application | lower != "ndvr"
+- include: restart-postgres.yml
+- include: restart-pgpool.yml
+- include: restart-elk.yml
+- include: restart-haproxy.yml
+- include: restart-nginx.yml
+- include: restart-rabbitmq.yml
+- include: restart-advisor.yml
+- include: restart-lbapi.yml
+- include: restart-dbaas_api.yml
+- include: restart-acpapi.yml

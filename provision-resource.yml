@@ -1,0 +1,6 @@
+- include: get-hostkeys.yml
+- include: prereq.yml
+- include: open-ports.yml
+- include: nameserver.yml
+- include: ntp.yml
+

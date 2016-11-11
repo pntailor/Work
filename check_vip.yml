@@ -1,0 +1,17 @@
+---
+- name: Check where the vip is located
+  hosts: "{{ host | default('lbaas')}}"
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - name: Check where the vip is
+    shell: ip a list dev eth0 | grep -w `host {{ vipdef }}| cut -d " " -f4` | wc -c
+    register: vip
+    ignore_errors: true
+
+  - debug: msg=" host {{ host }}"
+  - debug: msg=" VIP to check {{ vipdef }}"
+  - debug: msg=" VIP {{ vip.stdout|int==0 }}"
+
+  - wait_for: timeout=20

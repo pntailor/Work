@@ -1,0 +1,7 @@
+---
+- name: Deploy logrotate prereqs on all acp hosts 
+  hosts: acp
+  become: yes
+  become_method: sudo
+  roles:
+     - logrotate

@@ -1,0 +1,9 @@
+[
+	{
+        "componentName":    "playbooks",
+        "componentDescr":   "ARRIS Cloud Platform: Core Playbooks",
+        "containerName":    "",
+        "componentVersion": "2.0.0",
+        "installFileBase":  "arrs-cloud-core-ansiblePlaybooks"
+	}
+]

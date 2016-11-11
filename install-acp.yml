@@ -1,0 +1,9 @@
+- include: cleanup.yml 
+- include: logrotate.yml
+- include: srdaas.yml
+- include: dbaas.yml
+- include: laas.yml
+- include: maas.yml
+- include: lbaas.yml
+- include: monaas.yml
+- include: acp_api.yml

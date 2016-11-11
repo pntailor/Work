@@ -1,0 +1,20 @@
+---
+- name: fetch Advisor certificates
+  hosts: advisor
+  become: yes
+  become_method: sudo
+
+  tasks:
+  - name : get remote file listing
+    shell: ls /var/opt/advisor/keystores/
+    register: certs
+  - name: create tmp certificate directory
+    file: path=/tmp/certificates/ state=directory mode=0755
+  - name: fetch certificates in tmp directory
+    fetch: src=/var/opt/advisor/keystores/{{ item }} dest=/tmp/certificates/ flat=yes
+    with_items: certs.stdout_lines
+    sudo: yes
+  - name: copy certificates
+    local_action: copy src=/tmp/certificates/{{ item }} dest=/home/docker/cloud-service-scripts/certificates/advisorServer/keys/
+    with_items: certs.stdout_lines
+    sudo: yes

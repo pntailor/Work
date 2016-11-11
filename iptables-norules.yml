@@ -1,0 +1,11 @@
+---
+- name: turn off all the iptables rules
+  hosts: "{{ host | default('acp')}}"
+  become: yes
+  become_method: sudo
+  tasks:
+    - name:
+      command: iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited
+    - name: Save iptables
+      command: sudo service iptables save
+

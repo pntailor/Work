@@ -1,0 +1,11 @@
+---
+- name: stop and remove containers, kill status checkers
+  hosts: acp
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  tags: 
+    - clean
+  roles:
+    - cleanup
+  
